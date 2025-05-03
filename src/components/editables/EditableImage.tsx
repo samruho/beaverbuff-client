@@ -1,4 +1,3 @@
-// src/components/EditableImage.tsx
 import React, { useState, useContext, useEffect, useRef } from 'react'
 import { EditContext } from '../../context/EditContext'
 import { useContent } from '../../hooks/useContent'
@@ -11,50 +10,53 @@ type Props = {
   alt?: string
   className?: string
   style?: React.CSSProperties
+  defaultValue?: string
 }
 
-const EditableImage: React.FC<Props> = ({ contentKey, alt, className, style }) => {
+const EditableImage: React.FC<Props> = ({ contentKey, alt, className, style, defaultValue }) => {
   const { editMode } = useContext(EditContext)
   const context = useContent(contentKey)
 
+  const resolvedValue = context.hasValue ? context.value : defaultValue ?? ''
   const [editing, setEditing] = useState(false)
-  const [draftUrl, setDraftUrl] = useState(context.value)
+  const [draftUrl, setDraftUrl] = useState(resolvedValue)
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const wrapperRef = useRef<HTMLSpanElement>(null)
 
   const [pendingFile, setPendingFile] = useState<File | null>(null)
 
   useEffect(() => {
-    setDraftUrl(context.value)
-  }, [context.value])
+    setDraftUrl(context.hasValue ? context.value : defaultValue ?? '')
+  }, [context.value, context.hasValue, defaultValue])
 
   const handleCancel = () => {
     if (draftUrl.startsWith('blob:')) {
       URL.revokeObjectURL(draftUrl)
     }
-  
-    setDraftUrl(context.value)
+
+    setDraftUrl(resolvedValue)
     setEditing(false)
     setPendingFile(null)
   }
 
-    const handleSave = async () => {
-        let finalUrl = draftUrl
-      
-        if (pendingFile) {
-          try {
-            const { url } = await uploadImage(pendingFile)
-            finalUrl = url
-          } catch (err) {
-            alert('Upload failed')
-            return
-          }
-        }
-      
-        context.setValue(finalUrl)
-        setEditing(false)
-        setPendingFile(null)
+  const handleSave = async () => {
+    let finalUrl = draftUrl
+
+    if (pendingFile) {
+      try {
+        const { url } = await uploadImage(pendingFile)
+        finalUrl = url
+      } catch (err) {
+        alert('Upload failed')
+        return
+      }
     }
+
+    context.setValue(finalUrl)
+    setEditing(false)
+    setPendingFile(null)
+  }
 
   const handleUploadClick = () => {
     fileInputRef.current?.click()
@@ -63,7 +65,7 @@ const EditableImage: React.FC<Props> = ({ contentKey, alt, className, style }) =
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-  
+
     const localUrl = URL.createObjectURL(file)
     setDraftUrl(localUrl)
     setPendingFile(file)
@@ -78,7 +80,7 @@ const EditableImage: React.FC<Props> = ({ contentKey, alt, className, style }) =
         paddingRight: '2.2rem',
       }}
     >
-      <img src={editing ? draftUrl : context.value} alt={alt} className={className} style={style} />
+      <img src={editing ? draftUrl : resolvedValue} alt={alt} className={className} style={style} />
 
       {editMode && (
         <>
@@ -106,7 +108,7 @@ const EditableImage: React.FC<Props> = ({ contentKey, alt, className, style }) =
               borderRadius: '0.5rem',
               padding: '0.2rem 0.4rem',
               zIndex: 1,
-              color: 'inherit'
+              color: 'inherit',
             }}
           >
             {editing ? (

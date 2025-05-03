@@ -1,8 +1,9 @@
-import React, { useState, useContext, useRef, useEffect } from 'react'
+import React, { useState, useContext, useEffect, useRef } from 'react'
 import { EditContext } from '../../context/EditContext'
+import { useContent } from '../../hooks/useContent'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faPen, faXmark } from '@fortawesome/free-solid-svg-icons'
-import { useContent } from '../../hooks/useContent'
+import ReactMarkdown from 'react-markdown'
 
 type Props = {
   contentKey: string
@@ -11,11 +12,10 @@ type Props = {
   defaultValue?: string
 }
 
-const EditableText: React.FC<Props> = ({ contentKey, value, onChange, defaultValue }) => {
+const EditableRichText: React.FC<Props> = ({ contentKey, value, onChange, defaultValue }) => {
   const { editMode } = useContext(EditContext)
   const context = useContent(contentKey)
-  console.log(defaultValue);
-  // Fallback order: value → context.value → defaultValue → ''
+
   const resolvedValue = value ?? (context.hasValue ? context.value : defaultValue) ?? '';
   const resolvedSetValue = onChange ?? ((_: string, val: string) => context.setValue(val))
 
@@ -26,42 +26,34 @@ const EditableText: React.FC<Props> = ({ contentKey, value, onChange, defaultVal
     setDraft(resolvedValue)
   }, [resolvedValue])
 
-  const wrapperRef = useRef<HTMLSpanElement>(null)
-
   const handleCancel = () => {
     setDraft(resolvedValue)
     setEditing(false)
   }
 
-  if (!editMode) return <>{resolvedValue}</>
+  if (!editMode) {
+    return <ReactMarkdown>{resolvedValue}</ReactMarkdown>
+  }
 
   return (
-    <span
-      ref={wrapperRef}
-      onClick={(e) => {
-        if (editMode) e.preventDefault()
-      }}
-      style={{
-        position: 'relative',
-        display: 'inline-block',
-        paddingRight: '2.2rem',
-      }}
-    >
+    <div style={{ position: 'relative', paddingRight: '2.2rem' }}>
       {editing ? (
-        <input
+        <textarea
           style={{
-            all: 'inherit',
+            width: '100%',
+            minHeight: '6rem',
             fontSize: 'inherit',
-            padding: '0.3em',
-            background: 'transparent',
+            fontFamily: 'inherit',
+            padding: '0.5rem',
             border: '1px dashed #aaa',
-            outline: 'none',
+            background: 'transparent',
+            resize: 'vertical',
           }}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
         />
       ) : (
-        <>{resolvedValue}</>
+        <ReactMarkdown>{resolvedValue}</ReactMarkdown>
       )}
 
       <span
@@ -99,7 +91,7 @@ const EditableText: React.FC<Props> = ({ contentKey, value, onChange, defaultVal
           </button>
         )}
       </span>
-    </span>
+    </div>
   )
 }
 
@@ -115,4 +107,4 @@ const buttonStyle: React.CSSProperties = {
   outline: 'none',
 }
 
-export default EditableText
+export default EditableRichText

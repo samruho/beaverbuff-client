@@ -1,6 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-const Accordion: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => {
+type AccordionProps = {
+  title?: string; // for backward compatibility
+  titleNode?: React.ReactNode;
+  children: React.ReactNode;
+};
+
+const Accordion: React.FC<AccordionProps> = ({ title, titleNode, children }) => {
   const [open, setOpen] = useState(false);
   const [height, setHeight] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -28,11 +34,11 @@ const Accordion: React.FC<{ title: string; children: React.ReactNode }> = ({ tit
           width: '100%',
           textAlign: 'left',
           alignItems: 'center',
-          color: 'inherit'
+          color: 'inherit',
         }}
         aria-expanded={open}
       >
-        {title}
+        <span>{titleNode ?? title}</span>
         <span style={{ position: 'relative', width: '16px', height: '16px', display: 'inline-block' }}>
           <div
             style={{
@@ -42,7 +48,7 @@ const Accordion: React.FC<{ title: string; children: React.ReactNode }> = ({ tit
               right: '0',
               height: '2px',
               background: 'black',
-              transform: 'translateY(-50%)'
+              transform: 'translateY(-50%)',
             }}
           />
           <div
@@ -54,7 +60,7 @@ const Accordion: React.FC<{ title: string; children: React.ReactNode }> = ({ tit
               width: '2px',
               background: 'black',
               transform: open ? 'translateX(-50%) rotate(90deg)' : 'translateX(-50%) rotate(0)',
-              transition: 'transform 0.3s ease'
+              transition: 'transform 0.3s ease',
             }}
           />
         </span>
@@ -67,10 +73,17 @@ const Accordion: React.FC<{ title: string; children: React.ReactNode }> = ({ tit
           transition: 'max-height 0.4s ease',
         }}
       >
-        <div style={{ paddingTop: '0.5rem', textAlign: 'left' }}>
+        <div
+          style={{
+            paddingTop: '0.5rem',
+            textAlign: 'left',
+            minHeight: open ? '3rem' : '0', // 👈 ensures space for edit buttons
+          }}
+        >
           {children}
         </div>
       </div>
+
     </div>
   );
 };

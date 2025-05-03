@@ -7,16 +7,20 @@ const pageCache: Record<string, Record<string, string>> = {}
 const fetchedPages = new Set<string>()
 
 export function useContent(contentKey: string) {
-  const [value, setValue] = useState('')
+  const [value, setValue] = useState<string | undefined>(undefined)
   const [loading, setLoading] = useState(true)
   const { setUnsavedChanges } = useContext(EditContext)
+
+  const [hasValue, setHasValue] = useState(false)
 
   useEffect(() => {
     const [page] = contentKey.split('.')
 
     const load = async () => {
-      if (pageCache[page] && pageCache[page][contentKey]) {
-        setValue(pageCache[page][contentKey])
+      if (pageCache[page] && contentKey in pageCache[page]) {
+        const cached = pageCache[page][contentKey]
+        setValue(cached)
+        setHasValue(true)
         setLoading(false)
         return
       }
@@ -29,7 +33,14 @@ export function useContent(contentKey: string) {
         fetchedPages.add(page)
       }
 
-      setValue(pageCache[page][contentKey] || '')
+      if (contentKey in pageCache[page]) {
+        setValue(pageCache[page][contentKey])
+        setHasValue(true)
+      } else {
+        setValue('')
+        setHasValue(false)
+      }
+
       setLoading(false)
     }
 
@@ -38,17 +49,18 @@ export function useContent(contentKey: string) {
 
   const update = (newValue: string) => {
     setValue(newValue)
-  
+
     const [page] = contentKey.split('.')
     if (!pageCache[page]) pageCache[page] = {}
     pageCache[page][contentKey] = newValue
-  
-    // ✅ push to unsavedChanges context
+
     setUnsavedChanges(prev => ({ ...prev, [contentKey]: newValue }))
+    setHasValue(true)
   }
 
   return {
     value,
+    hasValue,
     setValue: update,
     loading,
   }
