@@ -1,7 +1,6 @@
-const API_BASE = 'http://beaverbuffdetails.ca:3000/api'
 
 export const login = async (username: string, password: string) => {
-  const res = await fetch(`${API_BASE}/authenticate`, {
+  const res = await fetch(`/authenticate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password })
@@ -17,7 +16,7 @@ export const login = async (username: string, password: string) => {
 export const fetchWithAuth = async (endpoint: string, method = 'GET', body?: any) => {
   const token = localStorage.getItem('token')
 
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const res = await fetch(`${endpoint}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
@@ -36,7 +35,7 @@ export const fetchWithAuth = async (endpoint: string, method = 'GET', body?: any
 export const patchContent = async (content: { [key: string]: string }) => {
   const token = localStorage.getItem('token')
 
-  const res = await fetch(`${API_BASE}/content`, {
+  const res = await fetch(`/content`, {
     method: 'PATCH',
     headers: {
       'Content-Type': 'application/json',
@@ -59,7 +58,7 @@ export const uploadImage = async (file: File): Promise<{ url: string }> => {
   const formData = new FormData()
   formData.append('image', file)
 
-  const res = await fetch(`${API_BASE}/upload-image`, {
+  const res = await fetch(`/upload-image`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
