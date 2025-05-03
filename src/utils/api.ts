@@ -16,7 +16,7 @@ export const login = async (username: string, password: string) => {
 export const fetchWithAuth = async (endpoint: string, method = 'GET', body?: any) => {
   const token = localStorage.getItem('token')
 
-  const res = await fetch(`/api/${endpoint}`, {
+  const res = await fetch(`/api${endpoint}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
